@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>引力波账单 · GW150914 — 相对论账单 #2</title>
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #12151d; --line: #262b38;
+    --text: #e8e6e3; --dim: #9aa1b0; --amber: #ffb454; --hot: #ff6b35;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    line-height: 1.75; }
+  canvas { display: block; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  #orbit { width: 100%; height: 430px; background:
+    radial-gradient(ellipse at 50% 20%, #1a1e2b 0%, var(--bg) 70%); }
+  header { text-align: center; padding: 56px 20px 40px; }
+  .series { color: var(--amber); letter-spacing: .35em; font-size: 13px; margin-bottom: 10px; }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: .08em; margin-bottom: 14px; }
+  .sub { color: var(--dim); font-size: 16px; max-width: 620px; margin: 0 auto; }
+  section { padding: 44px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 22px; margin-bottom: 8px; }
+  h2 .no { color: var(--amber); margin-right: 8px; }
+  .lead { color: var(--dim); font-size: 14px; margin-bottom: 20px; }
+  #waveform, #chirpfit { width: 100%; height: 320px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; }
+  #spectrogram { width: 100%; border: 1px solid var(--line); border-radius: 10px; }
+  .audio-btns { display: flex; gap: 12px; margin: 18px 0 10px; flex-wrap: wrap; }
+  button { background: #1c2230; color: var(--text); border: 1px solid var(--line);
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer;
+    transition: border-color .2s; }
+  button:hover { border-color: var(--amber); }
+  button.playing { border-color: var(--hot); color: var(--hot); }
+  .note { color: var(--dim); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 500; font-size: 13px; }
+  td.verdict { white-space: nowrap; }
+  .ok { color: #7fd88f; } .warn { color: var(--amber); } .cite { color: #7fb3ff; }
+  footer { border-top: 1px solid var(--line); padding: 34px 0 60px; color: var(--dim);
+    font-size: 13px; text-align: center; }
+  footer a { color: var(--amber); text-decoration: none; }
+  .num { font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    #orbit { height: 300px; }
+    table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="orbit"></canvas>
+
+<header>
+  <p class="series">相对论账单 · 第二件</p>
+  <h1>引力波账单</h1>
+  <p class="sub">2015 年 9 月 14 日，两个黑洞并合，宇宙开出一张 3 个太阳质量的账单。<br>
+  这张账单的收据，此刻就在你的浏览器里——用 LIGO 的真实数据，重新算给你看。</p>
+</header>
+
+<div class="wrap">
+
+<section id="wave">
+  <h2><span class="no">一</span>收据：H1 应变（白化后）</h2>
+  <p class="lead">并合前后 ±350 毫秒。红线是并合瞬间 GPS 1126259462.42。白化 = 按离源噪声谱 PSD 归一，把淹没信号的噪声拉平。</p>
+  <canvas id="waveform"></canvas>
+  <div class="audio-btns">
+    <button id="play-real">▶ 听真实信号（加速 8 倍）</button>
+    <button id="play-tpl">▶ 听理论 chirp（同样加速）</button>
+  </div>
+  <p class="note">音频 = 白化 + 带通(30–300 Hz) 后的真实应变，加速 8 倍进入人耳范围。13 亿年前两个黑洞发出的最后一声，此刻在你的扬声器里。</p>
+</section>
+
+<section id="spec">
+  <h2><span class="no">二</span>频率爬升：chirp</h2>
+  <p class="lead">并合前 0.2 秒，引力波频率从 ~35 Hz 一路扫到 ~250 Hz——这是双黑洞互相环绕的最后几百圈。</p>
+  <img id="spectrogram" src="assets/spectrogram.png" alt="H1 频谱图">
+</section>
+
+<section id="chirp">
+  <h2><span class="no">三</span>定律：f ∝ τ^(−3/8)</h2>
+  <p class="lead">橙点：实测谱图脊线。红线：广义相对论四极辐射预言的 chirp 定律，只拟合了一个参数 C。点落在红线上，定律就成立。</p>
+  <canvas id="chirpfit"></canvas>
+  <p class="note" style="margin-top:12px" id="chirp-note"></p>
+</section>
+
+<section id="assertions">
+  <h2><span class="no">四</span>账单明细：7 条断言</h2>
+  <p class="lead">验收标准。每条给出：实测（本机数据）· 文献（LIGO PRL 116, 061102）· 结论。</p>
+  <table>
+    <thead><tr><th>#</th><th>断言</th><th>实测（本机算）</th><th>文献</th><th>结论</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>并合前频率按 τ^(−3/8) 发散</td>
+        <td>脊线固定斜率拟合 C = <span class="num">19.62</span>，曲线贴合实测点</td>
+        <td>四极辐射预言</td><td class="verdict ok">✅ 拟合通过</td></tr>
+      <tr><td>2</td><td>chirp 质量 M_c ≈ 28.6 M_sun</td>
+        <td>由 C 反推 <span class="num">26.2 M_sun</span>（偏差 8%）</td>
+        <td>28.6 M_sun</td><td class="verdict warn">⚠️ 同量级</td></tr>
+      <tr><td>3</td><td>3 个太阳质量辐射掉 ≈ 5.4×10^47 J</td>
+        <td>需双探测器参数估计，本页不计算</td>
+        <td>3.0 M_sun</td><td class="verdict cite">📖 文献值</td></tr>
+      <tr><td>4</td><td>峰值应变 h ≈ 10^−21</td>
+        <td>带通实测峰值 <span class="num">2.67×10^−21</span></td>
+        <td>1.0×10^−21</td><td class="verdict ok">✅ 同量级</td></tr>
+      <tr><td>5</td><td>35→250 Hz 用时 ~0.2 s</td>
+        <td>由拟合 C 反推 <span class="num">0.213 s</span></td>
+        <td>~0.2 s</td><td class="verdict ok">✅ 拟合通过</td></tr>
+      <tr><td>6</td><td>峰值功率 3.6×10^49 W，超全宇宙星光总和</td>
+        <td>需距离+方向估计，本页不计算</td>
+        <td>3.6×10^49 W</td><td class="verdict cite">📖 文献值</td></tr>
+      <tr><td>7</td><td>残余 Kerr 黑洞 ringdown ~250 Hz / ~4 ms</td>
+        <td>匹配滤波 <span class="num">288 Hz / 3.5 ms</span></td>
+        <td>~251 Hz / ~4 ms</td><td class="verdict ok">✅ 同量级</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</div>
+
+<footer>
+  数据：LIGO H1 4 kHz（GWOSC · GWTC-1-confident）　方法：PSD 白化 + 匹配滤波（TaylorF2 后牛顿）+ 谱图脊线拟合<br>
+  文献：LIGO Scientific Collaboration, <i>PRL 116, 061102 (2016)</i>　系列：
+  <a href="https://yushi-design156.github.io/interstellar-time-bill/">#1 星际穿越时间账单</a> ／ #2 引力波账单
+</footer>
+
+<script src="src/main.js"></script>
+</body>
+</html>
